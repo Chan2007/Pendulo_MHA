@@ -1,1 +1,1 @@
-# Pendulo_MHA
+# Pendulo com movimento harmônico amortecido 
