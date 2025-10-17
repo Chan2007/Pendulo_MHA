@@ -8,4 +8,5 @@ O respositório contém diversos gráficos úteis para a análise do movimento:
 
 
 Além de outros materiais decorrentes dos dois programas de python e dos Softwares SciDavis e Tracker.
+
 Obs.: O arquivo em formato .trk deverá ser aberto usando o software Tracker.
