@@ -6,6 +6,13 @@ from MHA_1 import analise_tabela
 from MHA_1 import fator
 from MHA_1 import movimento_amortecido
 
+def pre_filtragem(df, coluna='x', num_desvios=2):
+    media = df[coluna].mean()
+    desvio = df[coluna].std()
+    filtro = (df[coluna] >= media - num_desvios*desvio) & (df[coluna] <= media + num_desvios*desvio)
+    df_filtrado = df[filtro].reset_index(drop=True)
+    return df_filtrado
+
 def fit_desvio(t_data, x_data):
     if len(t_data) < 5: # Precisa de pelo menos 5 pontos
         return np.inf, None
@@ -38,7 +45,7 @@ def fit_desvio(t_data, x_data):
 
     try:
         with np.errstate(divide='ignore', invalid='ignore'):
-            param, cov = curve_fit(movimento_amortecido, t_data, x_data, p0=initial_guess, bounds=bounds, maxfev=10000)
+            param, cov = curve_fit(movimento_amortecido, t_data, x_data, p0=initial_guess, bounds=bounds, maxfev=10)
         ideal = movimento_amortecido(t_data, *param)
         desvios = x_data - ideal
         desvio_padrao = np.std(desvios)
@@ -53,19 +60,20 @@ def analise_modulada(file_path, num_points=30):
             df = pd.read_csv(file_path, sep=",", decimal=",", skiprows=1, header=None, names=["t", "x"])
         except:
             df = pd.read_csv(file_path, sep=",", decimal=",", skiprows=1, header=None, names=["t", "x"])
-
     except Exception as e:
         print(f"Erro ao ler o arquivo {file_path}: {e}")
         return
+
+    # Aplicar a pré-filtragem aqui
+    df = pre_filtragem(df, coluna='x', num_desvios=2)
 
     min_desvio_padrao = np.inf
     best_params = None
     best_data_subset = None
     best_start_index = -1
 
-    # Certificar-se de que há dados suficientes para formar um subconjunto de num_points
     if len(df) < num_points:
-        print(f"O arquivo {file_path} tem menos de {num_points} pontos. Não é possível analisar.")
+        print(f"O arquivo {file_path} tem menos de {num_points} pontos após pré-filtragem. Não é possível analisar.")
         return
 
     for i in range(len(df) - num_points + 1):
@@ -94,7 +102,7 @@ def analise_modulada(file_path, num_points=30):
         print(f"  Offset: {best_params[4]:.4f}")
         print(f"  Fator de qualidade: {np.mean(fator(best_params[1], periodo)):.4f}")
 
-        output_csv_filename = file_path.replace(".csv", "_planilha.csv")
+        output_csv_filename = file_path.replace(".csv", "planilha.csv")
         best_data_subset.to_csv(output_csv_filename, index=False)
         print(f"Planilha salva em: {output_csv_filename}")
 
@@ -117,7 +125,9 @@ def analise_modulada(file_path, num_points=30):
 
 if __name__ == "__main__":
     # Caminho para o arquivo de dados do usuário
-    data_file = "UTFPR/FISICA/PENDULO/DadosMHA.csv"
+    data_file = "UTFPR/FISICA/PENDULO/DadosMHA.csv" // Usar o endereço do arquivo CSV do computador
     analise_tabela(data_file)
-    analise_modulada(data_file)  # Com o número de iterações e operações, essa função demora muito para produzir os resultados (~ 10 minutos)
+    analise_modulada(data_file)
+    # Ao executar esse programa, o programa MHA_1 também é executado
+
 
