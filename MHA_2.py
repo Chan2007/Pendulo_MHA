@@ -7,6 +7,7 @@ from MHA_1 import fator
 from MHA_1 import movimento_amortecido
 
 def pre_filtragem(df, coluna='x', num_desvios=2):
+    # Filtra valores que se distanciam demais da média, antes de fazer a iteração
     media = df[coluna].mean()
     desvio = df[coluna].std()
     filtro = (df[coluna] >= media - num_desvios*desvio) & (df[coluna] <= media + num_desvios*desvio)
@@ -129,5 +130,6 @@ if __name__ == "__main__":
     analise_tabela(data_file)
     analise_modulada(data_file)
     # Ao executar esse programa, o programa MHA_1 também é executado
+
 
 
