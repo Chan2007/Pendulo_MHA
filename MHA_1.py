@@ -5,14 +5,18 @@ import matplotlib.pyplot as plt
 
 def fator(b, t):
     denom = -np.expm1(-2*b*t)
-    result = np.where(denom == 0, np.inf, 2*np.pi / denom)
+    
+    # Impede divisão por 0
+    result = np.where(denom == 0, np.inf, 2*np.pi / denom) # Impede divisão por 0
     return result
 
 def movimento_amortecido(t, a, b, c, d, offset):
+    # Equação do MHA
     return a * np.exp(-b * t) * np.cos(c * t - d) + offset
 
 def analise_tabela(file_path):
     try:
+        # Lê arquivo CSV em que os dados estão separados por colunas (t, x) por vírgula
         df = pd.read_csv(file_path, sep=",", decimal=",", skiprows=1, header=None)
         df.columns = ["t", "x"]
     except Exception as e:
@@ -22,10 +26,12 @@ def analise_tabela(file_path):
 
     t_data = df["t"].values
     x_data = df["x"].values
-
+    
+    # Estimativa inicial para amplitude e centro de oscilação
     a_initial = (np.max(x_data) - np.min(x_data)) / 2
     offset_initial = np.mean(x_data)
-
+    
+    # Estimativa inicial para ω
     if len(t_data) > 1 and (t_data[-1] - t_data[0]) > 0:
         c_initial = 2 * np.pi / (t_data[-1] - t_data[0]) * 5 
     else:
@@ -38,6 +44,7 @@ def analise_tabela(file_path):
     bounds = ([0, 0, 0, -np.inf, -np.inf], [np.inf, np.inf, np.inf, np.inf, np.inf])
 
     try:
+        # Aplica a função para achar a curva solicitada
         param, cov = curve_fit(movimento_amortecido, t_data, x_data, p0=initial_guess, bounds=bounds, maxfev=5000)
     except RuntimeError as e:
         print(f"Erro ao ajustar a curva MHA: {e}")
@@ -55,7 +62,8 @@ def analise_tabela(file_path):
     print(f"  d (Fase): {d_fit:.4f} rad")
     print(f"  Offset (Posição de equilíbrio): {offset_fit:.4f}")
     print(f"  Fator de qualidade: {np.mean(fator(b_fit, periodo)):.4f}")
-
+    
+    # Cria gráfico do eixo x_fit x t
     plt.figure(figsize=(10, 6))
     plt.plot(t_data, x_data, label='Dados Originais', alpha=0.7)
     t_fit = np.linspace(t_data.min(), t_data.max(), 500) 
@@ -72,6 +80,7 @@ def analise_tabela(file_path):
 
 if __name__ == "__main__":
     pass
+
 
 
 
